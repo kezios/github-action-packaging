@@ -28,9 +28,12 @@ inputs:
     description: 'Template for commit message using $version$ as var'
     default: 'chore(release): 🔖 $version$ [skip ci]'
 
+  githubToken:
+    description: 'GITHUB_TOKEN allowing to push on repo'
+
 outputs:
   new-version:
-    description: "Nouvelle version selectionner par semantic"
+    description: Nouvelle version selectionnée par semantic
     value: ${{ steps.packaging.outputs.NEW_VERSION }}
 
 runs:
@@ -56,15 +59,15 @@ runs:
     shell: bash
 
   - name: Add and commit changes
-    if: ${{ inputs.enable-commit-and-push === "true" }}
+    if: ${{ inputs.enable-commit-and-push == 'true' }}
     uses: EndBug/add-and-commit@v9
     with:
       message: ${{ steps.packaging.outputs.COMMIT_MESSAGE }}
 
   - name: Push changes to protected branch
-    if: ${{ inputs.enable-commit-and-push === "true" }}
+    if: ${{ inputs.enable-commit-and-push == 'true' }}
     uses: CasperWA/push-protected@v2
     with:
       branch: ${{ inputs.branch }}
-      token: ${{ secrets.GITHUB_TOKEN }}
+      token: ${{ inputs.githubToken }}
       add: ${{ inputs.staging-path }}
