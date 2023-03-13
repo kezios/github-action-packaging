@@ -1,0 +1,70 @@
+name: 'Kezios packaging & commit'
+
+description: |
+  This GitHub Action runs a packaging Node script to create new version & update changelog.
+
+inputs:
+  enable-commit-and-push: 
+    description: 'Will create commit & push change'
+    default: "true"
+  
+  staging-path:
+    description: 'Args of "git add"'
+    default: "."
+
+  package-path:
+    description: 'The path to the package.json'
+    default: './package.json'
+
+  changelog-path:
+    description: 'The path to the CHANGELOG.md'
+    default: './CHANGELOG.md'
+
+  branch:
+    description: 'The remote refs for git push'
+    default: "main"
+
+  commit-template:
+    description: 'Template for commit message using $version$ as var'
+    default: 'chore(release): 🔖 $version$ [skip ci]'
+
+outputs:
+  new-version:
+    description: "Nouvelle version selectionner par semantic"
+    value: ${{ steps.packaging.outputs.NEW_VERSION }}
+
+runs:
+  using: 'composite'
+  steps:
+  - name: Checkout code
+    uses: actions/checkout@v2
+
+  - name: Load Node.js
+    uses: actions/setup-node@v3
+    with:
+      node-version: '19.7.0'
+      cache: 'yarn'
+      cache-dependency-path: yarn.lock
+
+  - name: Installing dependencies
+    run: yarn install #--frozen-lockfile
+    shell: bash
+
+  - name: Installing dependencies
+    id: packaging
+    run: node ./semantic-releasing.js ${{ inputs.package-path }} ${{ inputs.changelog-path }} ${{ inputs.commit-message }}
+    shell: bash
+
+  - name: Add and commit changes
+    if: ${{ inputs.enable-commit-and-push === "true" }}
+    uses: EndBug/add-and-commit@v9
+    with:
+      message: ${{ steps.packaging.outputs.COMMIT_MESSAGE }}
+
+  - name: Push changes to protected branch
+    if: ${{ inputs.enable-commit-and-push === "true" }}
+    uses: CasperWA/push-protected@v2
+    with:
+      branch: ${{ inputs.branch }}
+      token: ${{ secrets.GITHUB_TOKEN }}
+      add: ${{ inputs.staging-path }}
