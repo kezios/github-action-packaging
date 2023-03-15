@@ -26,7 +26,7 @@ inputs:
 
   commit-template:
     description: 'Template for commit message using $version$ as var'
-    default: 'chore(release): 🔖 $version$ [skip ci]'
+    default: 'chore(release): 🔖 _version_ [skip ci]'
 
   githubToken:
     description: 'GITHUB_TOKEN allowing to push on repo'
@@ -49,25 +49,42 @@ runs:
       cache: 'yarn'
       cache-dependency-path: yarn.lock
 
-  - name: Installing dependencies
-    run: yarn install #--frozen-lockfile
+  - name: Run packaging using npx
+    id: packaging
+    run: 
+      npx @kezios/github-action-packaging@latest node 
+      --package-uri=${{ inputs.package-path }} 
+      --changelog-uri=${{ inputs.changelog-path }}
+      --branch=${{ inputs.branch }}
     shell: bash
 
-  - name: Installing dependencies
-    id: packaging
-    run: node ./semantic-releasing.js ${{ inputs.package-path }} ${{ inputs.changelog-path }} ${{ inputs.commit-message }}
+  - name: Extract version from package.json
+    uses: amochkin/gha-json-value@v1-rc5
+    id: extract-version
+    with:
+      property: version
+
+  - name: Prepare commit message
+    id: prepare-commit-message
+    run: |
+      str="${{ inputs.commit-template }}";
+      oldstr="${{ steps.extract-version.outputs.value }}";
+      newstr="1.0.1";
+      result=$(echo $str | sed "s/$oldstr/$newstr/");
+      echo "message=$result" >> $GITHUB_OUTPUT;
     shell: bash
 
   - name: Add and commit changes
+    id: commit
     if: ${{ inputs.enable-commit-and-push == 'true' }}
     uses: EndBug/add-and-commit@v9
     with:
-      message: ${{ steps.packaging.outputs.COMMIT_MESSAGE }}
+      message: ${{ steps.prepare-commit-message.outputs.message }}  
+      add: ${{ inputs.staging-path }}
 
   - name: Push changes to protected branch
-    if: ${{ inputs.enable-commit-and-push == 'true' }}
+    if: ${{ inputs.enable-commit-and-push == 'true' && steps.commit.outputs.committed == 'true' }}
     uses: CasperWA/push-protected@v2
     with:
       branch: ${{ inputs.branch }}
       token: ${{ inputs.githubToken }}
-      add: ${{ inputs.staging-path }}
