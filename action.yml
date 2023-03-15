@@ -49,25 +49,26 @@ runs:
       cache: 'yarn'
       cache-dependency-path: yarn.lock
 
-  - name: Installing dependencies
-    run: yarn install #--frozen-lockfile
-    shell: bash
-
-  - name: Installing dependencies
+  - name: Run packaging using npx
     id: packaging
-    run: node ./semantic-releasing.js ${{ inputs.package-path }} ${{ inputs.changelog-path }} ${{ inputs.commit-message }}
+    run: 
+      npx @kezios/github-action-packaging@latest node 
+      --package-uri=${{ inputs.package-path }} 
+      --changelog-uri=${{ inputs.changelog-path }}
+      --branch=${{ inputs.branch }}
     shell: bash
 
   - name: Add and commit changes
+    id: commit
     if: ${{ inputs.enable-commit-and-push == 'true' }}
     uses: EndBug/add-and-commit@v9
     with:
       message: ${{ steps.packaging.outputs.COMMIT_MESSAGE }}
+      add: ${{ inputs.staging-path }}
 
   - name: Push changes to protected branch
-    if: ${{ inputs.enable-commit-and-push == 'true' }}
+    if: ${{ inputs.enable-commit-and-push == 'true' && steps.commit.outputs.committed == 'true' }}
     uses: CasperWA/push-protected@v2
     with:
       branch: ${{ inputs.branch }}
       token: ${{ inputs.githubToken }}
-      add: ${{ inputs.staging-path }}
