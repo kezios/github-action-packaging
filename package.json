@@ -1,12 +1,30 @@
 {
-  "name": "github-action-packaging",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "@kezios/github-action-packaging",
+  "version": "1.4.0",
+  "main": "./src/index.mjs",
+  "bin": {
+    "kezios-prepare-release-cli": "./src/index.mjs"
+  },
   "repository": "git@github.com:kezios/github-action-packaging.git",
   "author": "Justin Martin <justin@kezios.fr>",
   "license": "MIT",
+  "scripts": {
+    "watch": "nodemon --watch 'src/**/*.js' --exec 'node' src/index.js",
+    "start": "node src/index.mjs",
+    "pretty": "prettier --write '**/*.{js,ts}'"
+  },
   "dependencies": {
+    "commander": "^10.0.0",
     "semantic-release": "^20.1.1",
     "stream-buffers": "^3.0.2"
-  }
+  },
+  "devDependencies": {
+    "husky": "8.0.2",
+    "nodemon": "2.0.20",
+    "prettier": "2.8.1",
+    "pretty-quick": "3.1.3"
+  },
+  "files": [
+    "src"
+  ]
 }
