@@ -22,15 +22,23 @@ const addChangelog = (path, data) =>
 /** COMMANDS **/
 const stdoutBuffer = new WritableStreamBuffer();
 
-const runSemanticAnalyser = async (packageJson, branch) => {
+const runSemanticAnalyser = async (
+  packageJson,
+  branch,
+  isPrerelease,
+  prereleaseSuffix
+) => {
   const result = await semanticRelease(
     {
       // Core options
-      branches: [branch],
+      branches: [{ name: branch, prerelease: isPrerelease }],
       plugins: [
         '@semantic-release/commit-analyzer',
         '@semantic-release/release-notes-generator'
-      ]
+      ],
+      ...(isPrerelease
+        ? { tagFormat: `${'v${version}'}-${prereleaseSuffix}` }
+        : {})
     },
     {
       //@ts-ignore
@@ -83,6 +91,8 @@ const parseArguments = (program = commander) => {
     .option('--package-uri <packageUri>', 'Location of package.json file')
     .option('--changelog-uri <changelogUri>', 'Location of changelog file')
     .option('--branch <branch>', 'Branch to release from', 'main')
+    .option('--pre-release', 'Is pre-release version', false)
+    .option('--pre-release-id <preReleaseId>', 'Pre-release id', 'beta')
     .action(prepareNodeRelease);
 
   program.parse(process.argv);
