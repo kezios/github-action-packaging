@@ -1,6 +1,6 @@
 {
   "name": "@kezios/github-action-packaging",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "main": "./src/index.mjs",
   "bin": {
     "kezios-prepare-release-cli": "./src/index.mjs"
