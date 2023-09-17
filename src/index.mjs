@@ -37,7 +37,9 @@ const runSemanticAnalyser = async (
         '@semantic-release/release-notes-generator'
       ],
       ...(isPrerelease
-        ? { tagFormat: `${'v${version}'}-alpha+${prereleaseSuffix}` }
+        ? {
+            tagFormat: `${'v${version}'}-alpha+${prereleaseSuffix}`
+          }
         : {})
     },
     {

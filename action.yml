@@ -31,6 +31,14 @@ inputs:
   github-token:
     description: 'GITHUB_TOKEN allowing to push on repo & access package'
 
+  pre-release:
+    description: 'Is pre-release version'
+    default: 'false'
+  
+  pre-release-id:
+    description: 'Last commit SHA use as pre-release id'
+    default: ''
+
 outputs:
   new-version:
     description: Nouvelle version selectionnée par semantic
@@ -55,7 +63,8 @@ runs:
       touch .nprmc
       echo "@kezios:registry=https://npm.pkg.github.com/" >> .npmrc
       echo "//npm.pkg.github.com/:_authToken=${{ inputs.github-token }}" >> .npmrc
-      npx @kezios/github-action-packaging@latest node --package-uri=${{ inputs.package-path }} --changelog-uri=${{ inputs.changelog-path }} --branch=${{ inputs.branch }}
+      unset GITHUB_ACTIONS
+      npx @kezios/github-action-packaging@latest node --package-uri=${{ inputs.package-path }} --changelog-uri=${{ inputs.changelog-path }} --branch=${{ inputs.branch }} --pre-release=${{ inputs.pre-release }} --pre-release-id=${{ inputs.pre-release-id }}
       rm .npmrc
     shell: bash
 
