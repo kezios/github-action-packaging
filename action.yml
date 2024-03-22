@@ -7,6 +7,10 @@ inputs:
   enable-commit-and-push: 
     description: 'Will create commit & push change'
     default: "true"
+    
+  remove-npm-rc: 
+    description: 'Will remove .npmrc'
+    default: "true"
   
   staging-path:
     description: 'Args of "git add"'
@@ -60,11 +64,16 @@ runs:
   - name: Run packaging using npx
     id: packaging
     run: |
-      touch .nprmc
+      touch .npmrc
       echo "@kezios:registry=https://npm.pkg.github.com/" >> .npmrc
       echo "//npm.pkg.github.com/:_authToken=${{ inputs.github-token }}" >> .npmrc
       unset GITHUB_ACTIONS
       npx @kezios/github-action-packaging@latest node --package-uri=${{ inputs.package-path }} --changelog-uri=${{ inputs.changelog-path }} --branch=${{ inputs.branch }} --pre-release=${{ inputs.pre-release }} --pre-release-id=${{ inputs.pre-release-id }}
+    shell: bash
+
+  - name: Remove .npmrc
+    id: npmrc
+    run: |
       rm .npmrc
     shell: bash
 
