@@ -72,6 +72,7 @@ runs:
     shell: bash
 
   - name: Remove .npmrc
+    if: ${{ inputs.remove-npm-rc == 'true' && steps.packaging.outputs.status == 'success' }}
     id: npmrc
     run: |
       rm .npmrc
